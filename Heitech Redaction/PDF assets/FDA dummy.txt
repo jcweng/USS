@@ -1,0 +1,21 @@
+{"Patient_Identifier": "123456789"}
+{"Social_Security": "999-99-9999"}
+{"Address": "123 Fake St, Springfield, ZZ 12345"}
+{"Date_of_Birth": "1980-01-01"}
+{"Sex": "M"}
+
+{"Date_of_Event": "2024-06-01"}
+{"Date_of_Report": "2024-06-05"}
+{"Describe_Event": "Patient experienced allergic reaction after injection. PII: John Doe, SS: 999-99-9999."}
+
+{"Relevant_Tests": "Blood IgE high; CBC normal"}
+{"Test_Date": "2024-06-02"}
+
+{"Product_Name": "Penicillin"}
+{"Strength": "500"}
+{"Strength_Unit": "mg"}
+{"NDC": "12345-6789-00"}
+{"Manufacturer": "GenericPharma Inc."}
+{"Lot_Number": "LOT123456"}
+
+{"Concomitant_Treatment": "Diphenhydramine 25 mg oral; given 2024-06-01"}

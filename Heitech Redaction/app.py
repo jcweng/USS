@@ -1,33 +1,56 @@
 # -*- coding: utf-8 -*-
 """
-Created on Thu Jul  3 16:18:50 2025
+Created on Mon Jul  7 15:48:48 2025
 
 @author: peace
 """
 
 import streamlit as st
+import spacy
 
-st.title("File Processor")
+# Load spaCy model
+nlp = spacy.load('en_core_web_trf')
 
+# Define PII types and their display colors
+PII_COLORS = {
+    "PERSON": "lightblue",
+    "GPE": "lightgreen",
+    "DATE": "lightpink",
+    "ORG": "lightyellow",
+    "LOC": "lavender",
+    "CARDINAL": "lightgray"
+}
+
+# File uploader
 uploaded_file = st.file_uploader("Upload a file", type=["txt"], accept_multiple_files=False)
 
 if uploaded_file is not None:
-    st.write("File uploaded:", uploaded_file.name)
-    
-    if st.button("Run"):
-        # Read original file
-        input_text = uploaded_file.read().decode("utf-8")
-        
-        # Modify content
-        output_text = input_text + "\nwritten here"
-        
-        # Convert to bytes for download
-        result_bytes = output_text.encode("utf-8")
-        
-        # Download link
-        st.download_button(
-            label="Download modified file",
-            data=result_bytes,
-            file_name="modified_" + uploaded_file.name,
-            mime="text/plain"
-        )
+    text = uploaded_file.read().decode("utf-8")
+    st.subheader("📄 Original Text")
+    st.text(text)
+
+    # Run spaCy NER
+    doc = nlp(text)
+
+    # Build HTML with color highlights
+    html_output = ""
+    last_end = 0
+
+    for ent in doc.ents:
+        # Append text before entity
+        html_output += text[last_end:ent.start_char]
+
+        color = PII_COLORS.get(ent.label_, None)
+        if color:
+            html_output += f'<span style="background-color:{color}; padding:2px;">{ent.text}</span>'
+        else:
+            html_output += ent.text
+
+        last_end = ent.end_char
+
+    # Append remaining text
+    html_output += text[last_end:]
+
+    # Display highlighted result
+    st.subheader("🔎 Highlighted PII")
+    st.markdown(html_output, unsafe_allow_html=True)
