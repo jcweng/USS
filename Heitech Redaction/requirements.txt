@@ -1,0 +1,18 @@
+pandas==2.2.1
+numpy==1.24.4
+pyarrow==21.0.0
+
+spacy==3.7.4
+spacy-curated-transformers==0.2.2
+curated-tokenizers==0.0.9
+torch==2.0.1
+transformers==4.54.0
+
+# These spaCy models may not show up in pip list if installed via "python -m spacy download"
+en-core-web-sm @ https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.7.1/en_core_web_sm-3.7.1.tar.gz
+en-core-web-trf @ https://github.com/explosion/spacy-models/releases/download/en_core_web_trf-3.7.3/en_core_web_trf-3.7.3.tar.gz
+
+symspellpy==6.9.0
+pyspellchecker==0.8.3
+language-tool-python==2.9.4
+python-dotenv==1.1.0

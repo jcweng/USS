@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF PII Redactor</title>
+    <link rel="stylesheet" href="static/styles.css">
+</head>
+<body>
+    <header>
+        <h1>CLARA: Confidential Language Anonymization</h1>
+        <nav>
+            <button onclick="navigateTo('upload')">Upload PDF</button>
+            <button onclick="navigateTo('redact')">Auto Redact</button>
+            <button onclick="navigateTo('manual')">Manual Highlights</button>
+        </nav>
+    </header>
+    <main>
+        <aside>
+            <h2>Settings</h2>
+            <div>
+                <label for="spellLevel">Spelling Correction:</label>
+                <select id="spellLevel">
+                    <option value="disable">Disable</option>
+                    <option value="1">Level 1</option>
+                    <option value="2">Level 2</option>
+                    <option value="3">Level 3</option>
+                </select>
+            </div>
+            <div>
+                <label for="grammarLevel">Grammar Correction:</label>
+                <select id="grammarLevel">
+                    <option value="disable">Disable</option>
+                    <option value="1">Level 1</option>
+                    <option value="3">Level 3</option>
+                </select>
+            </div>
+            <div>
+                <label for="fluencyLevel">Fluency Correction:</label>
+                <select id="fluencyLevel">
+                    <option value="disable">Disable</option>
+                    <option value="1">Level 1</option>
+                    <option value="2">Level 2</option>
+                    <option value="3">Level 3</option>
+                </select>
+            </div>
+        </aside>
+        <section id="content">
+            <!-- Dynamic content will be loaded here -->
+        </section>
+    </main>
+    <footer>
+        <p>&copy; 2025 PDF PII Redactor</p>
+    </footer>
+    <script src="static/scripts.js"></script>
+</body>
+</html>

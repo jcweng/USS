@@ -11,7 +11,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import fitz  # PyMuPDF
-os.chdir('C:/Users/peace/My Drive/Python_code/PDF')
+os.chdir('C:/Users/peace/Documents/GitHub/USS/Heitech Redaction/PDF assets')
 import fitz  # PyMuPDF
 import pandas as pd
 from PIL import Image
@@ -35,86 +35,8 @@ def extract_pdf_fields_to_df(pdf_path: str):
 
     df = pd.DataFrame(data)
     return df
-pdf_path = "FDA MedWatch 3500A Form filled.pdf"
-extracted_df = extract_pdf_fields_to_df("FDA MedWatch 3500A Form filled.pdf")
-
-
-def flatten_v3(file_name, pages_to_apply, words_to_delete, extracted_df):
-    doc = fitz.open(file_name)
-    if doc.is_encrypted:
-        doc.authenticate("")
-
-    for page_index in pages_to_apply:
-        page_num = page_index - 1
-        if page_num < 0 or page_num >= len(doc):
-            print(f"⚠️ Skipping invalid page number: {page_index}")
-            continue
-
-        page = doc[page_num]
-        widgets = page.widgets()
-
-        for widget in widgets:
-            val = widget.field_value or ""
-            if val.strip() == "":
-                continue  # Skip empty fields — focus only on user input
-
-            # Match against all words to delete and extract substrings from extracted_df
-            for word in words_to_delete:
-                if word.lower() in val.lower():
-                    # Find matching entry in extracted_df
-                    matches_df = extracted_df[extracted_df['field_value'].str.contains(word, case=False, na=False)]
-                    for _, row in matches_df.iterrows():
-                        extended_val = row['field_value']
-
-                        # Find substrings within the extended field_value that include the target word
-                        start = extended_val.lower().find(word.lower())
-                        if start != -1:
-                            end = start + len(word)
-                            buffer = 10  # how many characters before and after to capture context
-                            context_start = max(0, start - buffer)
-                            context_end = min(len(extended_val), end + buffer)
-                            phrase_to_redact = extended_val[context_start:context_end]
-
-                            # Search and redact visually
-                            matches = page.search_for(phrase_to_redact, quads=False)
-                            for match_rect in matches:
-                                page.draw_rect(match_rect, fill=(0, 0, 0), overlay=True)
-
-                            # Replace phrase in field_value with spaces
-                            def replace_case_insensitive(text, sub):
-                                start = text.lower().find(sub.lower())
-                                if start == -1:
-                                    return text
-                                return text[:start] + " " * len(sub) + text[start + len(sub):]
-
-                            new_val = val
-                            while phrase_to_redact.lower() in new_val.lower():
-                                new_val = replace_case_insensitive(new_val, phrase_to_redact)
-
-                            widget.field_value = new_val
-                            print(f"Page {page_index}: Redacted phrase '{phrase_to_redact}' in field → '{val}' → '{new_val}'")
-
-    # ✅ Flatten to image-based PDF after redaction
-    out = fitz.open()
-    for page in doc:
-        w, h = page.rect.br
-        outpage = out.new_page(width=w, height=h)
-        pix = page.get_pixmap(dpi=150)
-        outpage.insert_image(page.rect, pixmap=pix)
-
-    flattened_file = file_name.replace(".pdf", "_redact_flat_v3.pdf")
-    out.save(flattened_file, garbage=3, deflate=True)
-
-    print(f"✅ Saved redacted + image-flattened PDF to: {flattened_file}")
-    return flattened_file
-
-
-doc = flatten_v3 (file_name="FDA MedWatch 3500A Form filled.pdf",
-                    pages_to_apply=[1, 2],
-                    words_to_delete=["JD123456","1989", "Blood",'Drug'],
-                    extracted_df=extracted_df
-                    )
-
+pdf_path = "FDA-3500A_medwatch Form - Report #1216630-2025-00005.pdf"
+extracted_df = extract_pdf_fields_to_df(pdf_path)
 
 
 import fitz  # PyMuPDF

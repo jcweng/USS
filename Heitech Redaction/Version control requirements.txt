@@ -1,0 +1,5 @@
+Package	Version	Status
+numpy	1.26.4	✅ Compatible
+pandas	2.3.1	✅ Compatible
+pyarrow	21.0.0	✅ Compatible
+streamlit	1.32.0	✅ Compatible
