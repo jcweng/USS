@@ -1,0 +1,25 @@
+# CLARA PDF PII Redactor — NO-UI Requirements
+# Python >= 3.10
+
+# --- Core runtime ---
+PyMuPDF>=1.23.0
+spacy==3.7.4
+symspellpy>=6.7.0
+language-tool-python>=2.7.0
+
+# --- Transformer pipeline support (needed for en_core_web_trf) ---
+spacy-transformers>=1.3.5
+torch>=2.0.0
+transformers>=4.30.0
+
+# --- spaCy models (DEFAULT: install during pip) ---
+# Pip will fetch these model wheels directly.
+https://github.com/explosion/spacy-models/releases/download/en_core_web_trf-3.7.3/en_core_web_trf-3.7.3-py3-none-any.whl
+https://github.com/explosion/spacy-models/releases/download/en_core_web_lg-3.7.1/en_core_web_lg-3.7.1-py3-none-any.whl
+https://github.com/explosion/spacy-models/releases/download/en_core_web_md-3.7.1/en_core_web_md-3.7.1-py3-none-any.whl
+
+# --- Offline alternative (UNCOMMENT if installing from local tar.gz) ---
+# Place model tarballs under ./models/ and use local file refs:
+# en_core_web_trf @ file:./models/en_core_web_trf-3.7.3.tar.gz
+# en_core_web_lg  @ file:./models/en_core_web_lg-3.7.1.tar.gz
+# en_core_web_md  @ file:./models/en_core_web_md-3.7.1.tar.gz
