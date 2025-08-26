@@ -69,16 +69,12 @@ def merge_spans_h2o(spans, text):
 
     for nxt in items[1:]:
         same_type = (nxt["_type"] == cur["_type"])
-        can_glue = cur["_type"] in GLUE
-        gap = text[cur["end"]:nxt["start"]]
-
-        # Merge rule: same type, gap only contains allowed glue chars
-        if same_type and can_glue and all(ch in GLUE[cur["_type"]] for ch in gap):
+        gap_len = nxt["start"] - cur["end"]
+        if same_type and gap_len == 0:
             cur["end"] = max(cur["end"], nxt["end"])
-            cur["word"] = text[cur["start"]:cur["end"]]  # optional: refresh surface
-            cur["score"] = max(cur["score"], nxt["score"])  # keep the best confidence
+            cur["word"] = text[cur["start"]:cur["end"]]
+            cur["score"] = max(cur["score"], nxt["score"])
         else:
-            # finalize current (trim whitespace)
             s, e = trim_span(cur["start"], cur["end"])
             cur["start"], cur["end"] = s, e
             cur["word"] = text[s:e]
@@ -96,11 +92,29 @@ def merge_spans_h2o(spans, text):
         m.pop("_type", None)
     return merged
 
-# --- 4) Example run ---
 
-text = "Contact Jane Doe at jane.doe@example.com or (617) 555-1234, 12 Main St, Boston MA."
+# --- 4) smale sample run ---
+text = "Post-operatively, support was inadequate. This requiring ongoing therapy (SSN: 696082539). Significant complications arose. From Jackson."
+text = "Patient Shirly Lamax the device failed while, unexpected bleeding occurred. Normal function returned. (SSN: 345-77-1432)."
+text = "The patient, Cruz, after activation, the system shut down. Leading to procedure termination. From McLean, MD."
 raw_spans = ner(text)
 fixed_spans = merge_spans_h2o(raw_spans, text)
+
+
+# --- 4b) Show token-level candidates (no aggregation) ---
+ner_tokens = pipeline(
+    task="token-classification",
+    model="h2oai/deberta_finetuned_pii",
+    aggregation_strategy=None,   # <-- important: raw token-level predictions
+    device=device
+)
+raw_tokens = ner_tokens(text)
+print("\nALL TOKEN-LEVEL ENTITIES (unaggregated):")
+for t in raw_tokens:
+    print(f"{t['entity']:15s} ({t['start']},{t['end']}) "
+          f"'{text[t['start']:t['end']]}' score={t['score']:.3f}")
+
+
 print("RAW:")
 for s in raw_spans:
     print(f"{s['entity_group']:10s} ({s['start']},{s['end']}) '{text[s['start']:s['end']]}'  score={s['score']:.3f}")
@@ -109,9 +123,44 @@ print("\nFIXED:")
 for s in fixed_spans:
     print(f"{s['entity_group']:10s} ({s['start']},{s['end']}) '{text[s['start']:s['end']]}'  score={s['score']:.3f}")
 
-# --- 5) Full loop run ---
 
+# --- 6) Batched redaction (compat mode) ---
+from tqdm import tqdm
+MAX_LEN = 384
+BATCH_SIZE = 16
+CHUNK = 512
 
+# Configure tokenizer once for older pipeline APIs
+ner.tokenizer.model_max_length = MAX_LEN
+ner.tokenizer.truncation_side = "right"
+ner.tokenizer.padding_side = "right"
+
+def redact_from_entities(text, ents):
+    fixed = merge_spans_h2o(ents, text)
+    repls = []
+    for s in fixed:
+        label = norm_type(s.get("entity_group", "PII"))
+        tag = f"(({label}))"
+        repls.append((s["start"], s["end"], tag))
+    for start, end, tag in sorted(repls, key=lambda x: x[0], reverse=True):
+        text = text[:start] + tag + text[end:]
+    return text
+
+def batched_redact(texts):
+    # No truncation/padding/max_length kwargs here — handled by tokenizer config
+    all_out = ner(texts, batch_size=BATCH_SIZE)
+    return [redact_from_entities(t, ents) for t, ents in zip(texts, all_out)]
+
+data_redacted = data.copy()
+texts = data_redacted["text"].astype(str).tolist()
+
+out = []
+for i in tqdm(range(0, len(texts), CHUNK), desc="Redacting"):
+    chunk = texts[i:i+CHUNK]
+    out.extend(batched_redact(chunk))
+
+data_redacted["pii-treated"] = out
+data_redacted.to_csv("pii_treated_dataset.csv", index=False)
 
 
 
